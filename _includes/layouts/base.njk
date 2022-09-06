@@ -46,5 +46,66 @@
     <footer></footer>
 
     <!-- Current page: {{ page.url | url }} -->
+    <script type="module">
+      import {html, css, LitElement} from "https://cdn.skypack.dev/lit@2.3.1";
+
+      export class HitCounter extends LitElement {
+        static styles = css`:host span { 
+      filter: drop-shadow(0 0 3px lime) drop-shadow(0 0 3px lime);
+      animation: 1.5s filter ease-in forwards;
+        }
+
+@keyframes filter {
+  0%  {
+   filter: drop-shadow(0 0 0px black);
+   }
+
+   75% {
+ filter: drop-shadow(0 0 5px lime) drop-shadow(0 0 5px lime);
+   }
+        }
+
+        `;
+
+        static properties = {
+          slug: {type: String},
+        };
+
+        constructor() {
+          super();
+          this.count = 0;
+          this.slug = '';
+        }
+
+        async getAnalyticsData() {
+          let url = `https://analytics.services.netlify.com/v2/52677274-0434-419e-8de0-b2ee03b31273/ranking/pages`;
+
+          let result = await fetch(url, {
+            mode: 'cors',
+            headers: {
+              Authorization: `Bearer ZBVQsgd2la-bWvxB3i11chHqQWUsxZL48gEfYvs1nGw`,
+            }
+          });
+
+          return result.json();
+        }
+
+        connectedCallback() {
+          super.connectedCallback()
+
+          this.getAnalyticsData().then(items => {
+            const item = items.data.find(item => item.resource === this.slug)
+            this.count = item.count
+            this.requestUpdate(this.count, 0)
+          })
+        }
+
+        render() {
+          return html`<span>${this.count === 0 ? html`<slot></slot>` : this.count}</span>`;
+        }
+      }
+
+      customElements.define('hit-counter', HitCounter);
+    </script>    
   </body>
 </html>
